@@ -14,12 +14,21 @@ ui <- fluidPage(
   div(
     h1("Passwords wordcloud"),
     br(),
-    sliderInput("strength", "Password strength from low to strong:",
+    sliderInput("strength", "Password strength from weak to strong:",
                 min = 0, max = 50, value = c(5, 10), step = 1, width="600px"),
     align = "center"
   ),
   withSpinner(
     plotOutput("wordCloud", height = "600px")
+  ),
+  div(
+    p("Created using data from ",
+      tags$a(href = "https://github.com/rfordatascience/tidytuesday/tree/master/data/2020/2020-01-14", target = "_blank", "TidyTuesday"),
+      "with fellows from ",
+      tags$a(href = "https://www.meetup.com/Cardiff-R-User-Group", target = "_blank", "Cardiff R enthusiasts"),
+      "meet-up."
+      ),
+    align = "center"
   )
 )
 
