@@ -17,23 +17,70 @@ passwords %>%
 passwords %>% 
   count(time_unit)
 
-passwords %>% 
-  filter(seconds= duration()= "days")
-
 lubridate::duration()
 
 
-passwords %>% 
-  mutate( time_unit_sec= case_when(
-    time_unit =="months" ~ 30*24*60*60* value,
-    time_unit =="days" ~ 24*60*60*value,
-    time_unit =="minutes" ~ 60* value, 
-    time_unit =="hours" ~ 60*60* value, 
-    time_unit =="seconds" ~ value, 
-    time_unit =="weeks" ~ 7*24*60*60, 
-    time_unit =="weeks" ~ *12*30*24*60*60* value,
-    TRUE ~ "NA"
-    
+password_tidy <- passwords %>% 
+  drop_na() %>% 
+  mutate(length= nchar(password)) %>% 
+  mutate( 
+    time_unit_sec= case_when(
+      time_unit == "days" ~ 24*60*60*value,
+      time_unit =="hours" ~ 60*60* value, 
+      time_unit =="minutes" ~ 60* value, 
+      time_unit =="months" ~ 30*24*60*60* value,
+      time_unit =="seconds" ~ value, 
+      time_unit =="weeks" ~ 7*24*60*60*value, 
+      time_unit =="years" ~ 12*30*24*60*60* value
+        )
   )
-)
+
+passwords %>% colnames()
+password_tidy %>%
+  ggplot(aes(x=time_unit_sec, y= offline_crack_sec))+
+  geom_point()+
+  scale_x_continuous(trans="log")+
+  scale_y_continuous(trans="log")+
+  NULL
   
+cor(password_tidy$time_unit_sec, password_tidy$offline_crack_sec)
+
+cor(password_tidy$strength, password_tidy$offline_crack_sec)
+cor(password_tidy$strength, password_tidy$time_unit_sec)
+
+cor(password_tidy$strength, password_tidy$length)
+cor(password_tidy$offline_crack_sec, password_tidy$length)
+
+
+password_tidy %>%
+  ggplot(aes(x=strength, y= time_unit_sec))+
+  geom_point()+
+  # scale_x_continuous(trans="log")+
+  scale_y_continuous(trans="log")+
+  geom_smooth()+
+  NULL
+
+password_tidy[c(406,500,336),]
+
+password_tidy %>% 
+  arrange(desc(offline_crack_sec)) %>% 
+  head()
+
+
+password_tidy %>% 
+  arrange(desc(length)) %>% 
+  head()
+
+password_tidy %>% 
+  count(strength) %>% 
+  ggplot(aes(strength,n))+
+  geom_col()
+
+
+lm1 <- password_tidy %>% 
+  lm(log(offline_crack_sec)~strength+length+category, data=.)
+
+summary(lm1)
+plot(lm1)
+
+
