@@ -1,0 +1,116 @@
+---
+title: "Beer Market Change"
+output: html_notebook
+---
+
+> How has the inputs, products and value of the brewing market changed over time?
+
+```{r setup}
+library(tidyverse)
+
+brewing_materials <-
+  readr::read_csv(
+    'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-31/brewing_materials.csv'
+  ) %>%
+  select(-month_prior_year,-ytd_current,-ytd_prior_year) %>%
+  filter(!stringr::str_detect(type, "Total")) %>%
+  mutate(year_month = lubridate::ymd(paste(year, month, 1)))
+
+beer_taxed <-
+  readr::read_csv(
+    'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-31/beer_taxed.csv'
+  ) %>%
+  select(-month_prior_year,-ytd_current,-ytd_prior_year) %>%
+  filter(!stringr::str_detect(type, "Total")) %>%
+  mutate(year_month = lubridate::ymd(paste(year, month, 1)))
+
+brewer_size <-
+  readr::read_csv(
+    'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-31/brewer_size.csv'
+  ) %>%
+  filter(!stringr::str_detect(brewer_size, "Total")) %>%
+  mutate(
+    brewer_size =
+      fct_relevel(
+        as_factor(brewer_size),
+        "Zero Barrels",
+        "Under 1 Barrel",
+        "1 to 1,000 Barrels",
+        "1,001 to 7,500 Barrels",
+        "7,501 to 15,000 Barrels",
+        "15,001 to 30,000 Barrels",
+        "30,001 to 60,000 Barrels",
+        "60,001 to 100,000 Barrels",
+        "100,001 to 500,000 Barrels",
+        "500,001 to 1,000,000 Barrels",
+        "1,000,000 to 6,000,000 Barrels",
+        "6,000,001 Barrels and Over"
+      )
+  ) %>% 
+  mutate(year = lubridate::ymd(paste(year, 1, 1)))
+```
+
+## Materials
+
+```{r plot materials over time}
+brewing_materials %>%
+  ggplot(aes(
+    x = year_month,
+    y = month_current,
+    group = type,
+    colour = type
+  )) +
+  geom_line() +
+  facet_wrap(. ~ type, scales = "free") +
+  labs(title = "Brewing materials by month")
+```
+
+### Observations
+
+* There is a sharp drop in the `month_current` in 2016 through to 2018
+* There are two significant (anomalous?) spikes in `Hops (dry)`
+* There is seasonality
+* There are a number of (anomalous?) spikes in all the other metrics at various times, some of which seem co-incidental at the same same interval
+  + the 2015 'drop'
+
+## Taxed
+
+```{r plot tax over time}
+beer_taxed %>%
+  ggplot(aes(
+    x = year_month,
+    y = month_current,
+    group = type,
+    colour = type
+  )) +
+  geom_line() +
+  facet_wrap(. ~ type, scales = "free") +
+  labs(title = "Brewing materials by month")
+```
+
+## Observations 
+
+* There is no 'drop' in taxes to coincide with the materials
+* There is a longer data set in taxes to 2020 in most cases
+* There is only on siginifcant spike, and some trend changes
+
+## Size
+
+```{r plot size over time}
+brewer_size %>%
+  gather(key = "measure",
+         value = 'value',
+         -year,
+         -brewer_size) %>%
+  ggplot(aes(x = year, y = value, colour = brewer_size)) +
+  geom_line() +
+  scale_y_log10() +
+  facet_wrap(. ~ measure, scales = "free") +
+  labs(title = "Brewing size by year")
+```
+
+### Observations
+
+* Log scale is required to see info between brewers of differetn scales on the same plot
+* There is no _clear_ drop in 2016 either
+  + There _might_ be something happening where brewers who produce `Under 1 Barrel` also suddenly drop in number in 2017, and drop in `taxable_removals` in 2019, but this is far from strong
