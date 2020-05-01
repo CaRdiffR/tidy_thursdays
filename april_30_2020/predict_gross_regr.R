@@ -59,7 +59,7 @@ hist(y_train)
 y_train_log <- log10(y_train)
 y_test_log  <- log10(y_test)
 
-hist(y_train)
+hist(y_train_log)
 
 fit_ctrl <- trainControl(number = 3)
 
@@ -73,6 +73,8 @@ rf_mod <- train(x = x_df_train,
 pred <- predict(rf_mod,
                 newdata = x_df_test)
 
+plot(y_test, pred)
+plot(log10(y_test), log10(pred))
 
 ## Explaining the model
 importance <- varImp(rf_mod, scale = TRUE)
@@ -89,7 +91,14 @@ plot(model_diagnostics(rf_explainer))
 
 ind_to_check  <- 187
 rownames(x_df_test)[[ind_to_check]]
-bd_rf <- variable_attribution(rf_explainer,
+bd_rf1 <- variable_attribution(rf_explainer,
                               new_observation = x_df_test[ind_to_check, ],
                               type = "break_down")
-plot(bd_rf)
+plot(bd_rf1) + ggtitle("American Psycho")
+
+ind_to_check  <- 130
+rownames(x_df_test)[[ind_to_check]]
+bd_rf2 <- variable_attribution(rf_explainer,
+                              new_observation = x_df_test[ind_to_check, ],
+                              type = "break_down")
+plot(bd_rf2)

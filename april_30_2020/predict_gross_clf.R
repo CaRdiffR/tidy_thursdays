@@ -4,6 +4,7 @@ library(tidytext)
 library(ranger)
 library(caret)
 library(DALEX)
+library(breakDown)
 
 grosses <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-28/grosses.csv', guess_max = 40000)
 synopses <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-28/synopses.csv')
@@ -71,7 +72,7 @@ rf_mod <- train(x = x_df_train,
                 y = y_train, 
                 method = "ranger",
                 trControl = fit_ctrl,
-                num.trees = 100,
+                num.trees = 25,
                 importance = "impurity")
 
 pred <- predict(rf_mod,
@@ -89,9 +90,13 @@ rf_explainer <- DALEX::explain(rf_mod,
 
 ind_to_check  <- 1
 rownames(x_df_test)[[ind_to_check]]
+
+br <- broken(rf_mod, x_df_test[ind_to_check, ])
+
+br <- broken(rf_mod, x_df_test[ind_to_check, ], data = x_df_test)
+
 bd_rf <- variable_attribution(rf_explainer,
                               new_observation = x_df_test[ind_to_check, ],
                               type = "break_down")
 plot(bd_rf)
 
-#br <- broken(rf_mod, x_df_test[ind_to_check, ])
