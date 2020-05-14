@@ -8,18 +8,28 @@ library(ggplot2)
 volcano = readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/volcano.csv')
 eruptions = readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/eruptions.csv')
 
-# check eruptions for busiest countries for eruptions...
-
+# exploring the data a bit
+# check countries with most eruptions...
 erupt_by_country = left_join(eruptions, select(volcano, volcano_number, country, subregion),
     by = c("volcano_number"="volcano_number")) %>%
     group_by(country) %>%
     count(sort = TRUE)  
-
 head(erupt_by_country)
 
+# what size eruptions are most common...
+count_eruptions = left_join(eruptions, select(volcano, volcano_number, country, subregion),
+    by = c("volcano_number"="volcano_number")) %>%
+    group_by(vei) %>%
+    count(sort = TRUE)  
+# vei not available for lots of eruptions - historical I guess...
+count_eruptions
+
+# add favourite country, start year and end year
+# and size of eruption from 1 to 7
 my_country <- "Indonesia"
-my_start_year <- 1990
-my_end_year <- 2000
+my_start_year <- 1250
+my_end_year <- 2020
+size <- 2
 
 eruptions_merged = left_join(eruptions, select(volcano, volcano_number, country, subregion),
     by = c("volcano_number"="volcano_number")) %>%
@@ -27,21 +37,27 @@ eruptions_merged = left_join(eruptions, select(volcano, volcano_number, country,
     filter(is.na(vei) == FALSE) %>%
     filter(start_year > my_start_year) %>%
     filter(start_year < my_end_year) %>%
+    filter(vei > size) %>%
     mutate(combo_year = as.numeric(paste(start_year, start_month, sep = ".")))
+
 
 # Using for loop to create data needed to plot a geom_polygon
 volcano_polygon_list = list()
 years = unlist(eruptions_merged$combo_year)
 volcano_ids = unlist(eruptions_merged$volcano_number)
 veis = unlist(eruptions_merged$vei)
+
 # There is most likely a better way of doing this.. but I cannot think of it!
+# so for this to work on a wider than 20 year window we need to 
+# change the value for making the pyramid
+# 0.25 is approx 1% of the number of decades
+pyr_size <- (my_end_year - my_start_year)/100
 for(i in 1:length(years)){
     volcano_polygon_df = data.frame(
-        x = c(years[i], years[i] + .25, years[i] + .5),
+        x = c(years[i], years[i] + pyr_size, years[i] + pyr_size*2),
         y = c(0, veis[i], 0),
         t = rep(volcano_ids[i], 3)
     )
-    
     volcano_polygon_list[[i]] = volcano_polygon_df
 }
 
@@ -64,11 +80,11 @@ volcano_timeline = ggplot() +
     scale_fill_manual(values = rcartocolor::carto_pal(n = 7, name = "BrwnYl")) 
 
 volcano_timeline <-  volcano_timeline +
-    labs(y = NULL, x = NULL, fill = NULL,
-    title = paste("Volcanic Activity Timeline", my_start_year, "to", my_end_year, "within", my_country),
+    labs(y = "Explosion Index", x = NULL, fill = NULL,
+    title = paste0("Volcanic Activity Timeline (vei>", size, ") ",
+        my_start_year, " to ", my_end_year, " within ", my_country),
 subtitle = "Each triangle's height represents the erruptions volcanic explosion index.",
 caption = paste0("Source: The Smithsonian Institution\n",
-    "Visualization: adapted from Ijeamaka Anyene | @ijeamaka_a"))
+    "Visualization: Paul Brennan | @brennanpcardiff  adapted from Ijeamaka Anyene | @ijeamaka_a"))
 
-    
 volcano_timeline + theme_bw() 
