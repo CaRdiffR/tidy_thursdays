@@ -12,7 +12,7 @@ library(patchwork)
 #volcano <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/volcano.csv')
 eruptions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/eruptions.csv')
 
-preproc_erupt <- eruptions %>%
+preproc_erupt_it <- eruptions %>%
   filter(start_year >= 1800,
          eruption_category != "Discredited Eruption",
          !is.na(vei)) %>%
@@ -20,10 +20,7 @@ preproc_erupt <- eruptions %>%
          longitude > 6, longitude < 19) %>%
   select(latitude, longitude, volcano_name, start_year, vei)
 
-#   filter(latitude > 52.44, latitude < 54.06,
-#longitude > -5.19, longitude < -4.10)
-
-p <- preproc_erupt %>%
+p <- preproc_erupt_it %>%
   ggplot(aes(longitude, latitude, size = vei, group = start_year)) +
   borders(database = "world", regions = c("Italy"), colour = "#396067", fill = "#383949") +
   geom_point(colour = "yellow",

@@ -11,7 +11,7 @@ volcano <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/ti
 #sulfur <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/sulfur.csv')
 
 processed_volcano <- volcano %>%
-  mutate(logpop10 = log10(population_within_10_km)) %>%
+  mutate(logpop10 = log10(population_within_10_km+0.1)) %>%
   select(primary_volcano_type, pop=logpop10, longitude, latitude)
 
 processed_volcano$primary_volcano_type <- 
@@ -49,12 +49,8 @@ do_map <- function(vulc_type, colid = NULL) {
     ggtitle(paste("Volcano type: ", vulc_type))
 }
 
-plot.list <- list()
-ii <- 1
-for (type in volcano_types$primary_volcano_type) {
-  plot.list[[type]] <- do_map(type, ii)
-  ii <- ii + 1
-}
+plot.list <- lapply(seq(1, length(volcano_types$primary_volcano_type)),
+                   function(i) do_map(volcano_types$primary_volcano_type[i], i))
 
 plt <- wrap_plots(plot.list, nrow = 2)
 plt
