@@ -3,6 +3,8 @@ library(lubridate)
 library(ggplot2)
 library(maps)
 library(patchwork)
+library(ggthemes)
+
 
 volcano <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/volcano.csv')
 #eruptions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/eruptions.csv')
@@ -54,3 +56,6 @@ plot.list <- lapply(seq(1, length(volcano_types$primary_volcano_type)),
 
 plt <- wrap_plots(plot.list, nrow = 2)
 plt
+# couldn't generate any output but works if I save it...
+ggsave("plot.pdf", plot = plt)
+
