@@ -1,0 +1,96 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup}
+library(tidyverse)
+volcano <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/volcano.csv')
+# eruptions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/eruptions.csv')
+# events <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/events.csv')
+# tree_rings <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/tree_rings.csv')
+# sulfur <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/sulfur.csv')
+```
+
+# EDA
+
+What have we got?
+
+```{r}
+volcano %>% str()
+```
+
+So there seems to be a morphological catagory for each observation
+
+```{r summarise_types_n}
+volcano %>% 
+  group_by(primary_volcano_type) %>%
+  summarise(number_of_volcanoes = n())
+```
+
+There is also a geological category, with an _implied_ order
+
+
+```{r}
+volcano %>% distinct(major_rock_2)
+```
+
+```{r summarise_geologies_n}
+# working out it was a specific NA tripped me up a lot in the case_when
+# what is the 'blank' value here? tried "", and " " and "/"
+volcano %>%
+    mutate_at(
+    .vars = vars(starts_with(c("major_rock", "minor_rock"))),
+    .funs = ~ case_when(
+      str_trim(.) == "" ~ NA_character_,
+      TRUE ~ .
+    )
+  ) %>% 
+  pivot_longer(
+    cols = starts_with("major_rock"),
+    names_to = "major_rock_slot",
+    values_to = "major_rock", 
+    values_drop_na = TRUE
+  ) %>% 
+  # filter(major_rock != "\u00A0") %>% 
+mutate(
+    primary_volcano_type = str_replace(primary_volcano_type, "\\(.*\\)", ""),
+    primary_volcano_type = str_replace(primary_volcano_type, "\\?", "")
+    )-> pivot_volcano
+
+pivot_volcano %>% 
+  group_by(major_rock, major_rock_slot) %>%
+  summarise(number_of_major_rock = n())%>%
+  arrange(major_rock) %>%
+  ggplot(aes(x = major_rock, y = number_of_major_rock, fill = major_rock_slot)) +
+  geom_col() +
+  coord_flip()
+```
+
+```{r}
+pivot_volcano %>% 
+  group_by(major_rock) %>% 
+  summarise(count_total = n()) -> count_obs_per_rock
+
+pivot_volcano %>%
+  group_by(primary_volcano_type, major_rock) %>% 
+  summarise(count_type = n()) %>% 
+  left_join(count_obs_per_rock, by = "major_rock") %>% 
+  mutate(proportion = count_type/count_total) %>% 
+  group_by(major_rock) %>% 
+  arrange(desc(proportion))
+```
+
+```{r}
+pivot_volcano %>% 
+  group_by(primary_volcano_type) %>% 
+  summarise(count_total = n()) -> count_obs_per_type
+
+pivot_volcano %>%
+  group_by(primary_volcano_type, major_rock) %>% 
+  summarise(count_rock = n()) %>% 
+  left_join(count_obs_per_type, by = "primary_volcano_type") %>% 
+  mutate(proportion = count_rock/count_total) %>% 
+  ggplot(aes(x = primary_volcano_type, y = major_rock, size = proportion)) +
+  geom_point()
+```
