@@ -53,19 +53,19 @@ for (cat in filtjobs) {
 
 science <- science %>% filter(job != "null")
 
-science$job <- as.factor(science$job)
+science$job <- factor(science$job, levels = c(mainjob, filtjobs))
 
 legend <- data.frame(col = unlist(allcolours),
                      job  = c(mainjob, filtjobs))
 
-p <- ggplot(science, aes(x = pos_x, y = pos_y, color = col, label = name)) +
+p <- ggplot(science, aes(x = pos_x, y = pos_y, color = job, label = name)) +
   geom_text() +
   theme_void() +
   scale_colour_manual(values=unlist(allcolours)) +
   coord_cartesian(clip = "off") +
   theme(plot.background = element_rect(fill = 'grey11', colour = 'grey11'),
         legend.position="none",
-        plot.margin = margin(40, 100, 30, 30),) +
+        plot.margin = margin(30, 200, 30, 30),) +
   annotate("text", x = -50,
          y = 140,
          label = "African American Scientists",
@@ -81,12 +81,14 @@ p <- ggplot(science, aes(x = pos_x, y = pos_y, color = col, label = name)) +
            color = "white",
            family = "Andale Mono")
 
-leg_list <- legend %>% transpose() %>% map(function(x) {
-  annotate("text", x = -50,
-           y = -160,
+leg_list <- legend %>% transpose() %>%
+  map2(1:nrow(legend), function(x, iter) {
+  annotate("text", x = 220,
+           y = 100 - 20*iter,
            label = x$job,
-           size = 10,
+           size = 4,
            hjust = 0,
            color = x$col)
-})
+  })
 
+p + leg_list
