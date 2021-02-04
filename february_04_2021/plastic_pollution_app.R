@@ -5,29 +5,31 @@ library(plotly)
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(forcats)
 
 plastics <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-01-26/plastics.csv')
 
 countries <- unique(plastics$country)
 
-select_data <- function(country_name) {
+select_data <- function(country_name, top_n = 10) {
   subset_plast <- plastics %>% 
     filter(country == country_name) %>%
     group_by(parent_company) %>%
     summarise(tot = sum(grand_total)) %>% arrange(desc(tot)) %>%
     filter(!(parent_company %in% c('Grand Total', 'Unbranded', 'null'))) %>%
-    head(10)
-  
-  subset_plast$parent_company <- factor(subset_plast$parent_company,
-                                        levels = subset_plast$parent_company[order(subset_plast$tot, decreasing = TRUE)])
+    head(top_n) %>% 
+    ungroup() %>% 
+    mutate(parent_company = fct_reorder(parent_company, desc(tot)))
   subset_plast
 }
 
 draw_barplot <- function(data){
-  color.function <- colorRampPalette( c( "#CCCCCC" , "#104E8B" ) )
-  color.ramp <- color.function(n = nrow(data))
+  #color.function <- colorRampPalette( c( "#CCCCCC" , "#104E8B" ) )
+  #color.ramp <- color.function(n = nrow(data))
   ggplot(data, aes(parent_company, tot, fill = parent_company)) +
-    geom_bar(stat = "identity")
+    geom_bar(stat = "identity") +
+    guides(colour=FALSE) +
+    theme(axis.text.x = element_text(angle = 30))
 }
 
 ui <- fluidPage(
@@ -53,7 +55,7 @@ ui <- fluidPage(
   )
 )
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   per_country_data <- reactive({
     select_data(input$country)
   })
@@ -66,4 +68,3 @@ server <- function(input, output) {
 }
 
 shinyApp(ui, server)
-
