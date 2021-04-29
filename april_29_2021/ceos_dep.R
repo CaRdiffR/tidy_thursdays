@@ -66,6 +66,14 @@ ggplot(dep_type_by_year_sim, aes(fyear_gone, s, group=departure_code)) +
 ## https://regex101.com/
 ## https://github.com/VerbalExpressions/RVerbalExpressions
 
+URL_parts <- function(x) {
+  m <- regexec("^(([^:]+)://)?([^:/]+)(:([0-9]+))?(/.*)", x)
+  parts <- do.call(rbind,
+                   lapply(regmatches(x, m), `[`, c(3L, 4L, 6L, 7L)))
+  colnames(parts) <- c("protocol","host","port","path")
+  parts
+}
+
 sources <- lapply(strsplit(departures$sources, ";"), function(x) as.data.frame(URL_parts(x))$host)
 sources <- unlist(sources)
 
