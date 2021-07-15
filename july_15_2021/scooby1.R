@@ -25,7 +25,7 @@ caught_df <- scoobydoo %>%
               date = min(date_aired))
 
 # only series with representative numbers
-caught_df <- caught_df[which(rowSums(caught_df[,2:6])>10), ]
+caught_df <- caught_df[rowSums(caught_df[,2:6])>10, ]
 
 # check if there's no overlapping years
 sort(unique(caught_df$date))
@@ -75,9 +75,10 @@ p <- ggplot(caught_longer, aes(x=who, y=count, fill = who)) +
                                   colour = "red", family = "Chalkduster"),
         axis.title = element_text(size=18, colour = "white"),
         axis.text = element_text(colour = "white"),
-        plot.background = element_rect(fill = "#2b272e")) +
-  coord_flip() +
+        plot.background = element_rect(fill = "#2b272e"),
+        panel.background = element_rect(fill = "#ddddd4")) +
   labs(title = '{closest_state}', x = '', y = 'How many monsters caught?') +
+  coord_flip() +
   transition_states(series_year) +
   ease_aes('linear')
 
