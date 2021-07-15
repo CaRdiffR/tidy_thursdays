@@ -1,5 +1,6 @@
 library(dplyr)
 library(magrittr)
+library(tidyr)
 library(stringr)
 library(glue)
 library(ggplot2)
@@ -16,41 +17,68 @@ scoobydoo$caught_scooby <- as.logical(scoobydoo$caught_scooby)
 
 caught_df <- scoobydoo %>%
     group_by(series_name) %>%
-    summarise(total_fred = sum(caught_fred, na.rm=T),
-              total_daphne = sum(caught_daphnie, na.rm=T),
-              total_velma = sum(caught_velma, na.rm=T),
-              total_shaggy = sum(caught_shaggy, na.rm=T),
-              total_scooby = sum(caught_scooby, na.rm=T))
+    summarise(total_Fred = sum(caught_fred, na.rm=T),
+              total_Daphnie = sum(caught_daphnie, na.rm=T),
+              total_Velma = sum(caught_velma, na.rm=T),
+              total_Shaggy = sum(caught_shaggy, na.rm=T),
+              total_Scooby = sum(caught_scooby, na.rm=T),
+              date = min(date_aired))
 
+# only series with representative numbers
+caught_df <- caught_df[which(rowSums(caught_df[,2:6])>10), ]
 
-ggplot(custom_dt, aes( x = REACTION, y = COUNT, label = NAME)) +
-  geom_image(aes(image = IMAGE), size = 0.04) +
-  geom_text_repel(point.padding = 0.9, segment.alpha = 0) +
-  xlab("as reaction") +
-  ylab("within message") +
-  theme_minimal()
+# check if there's no overlapping years
+sort(unique(caught_df$date))
 
+caught_longer <- caught_df %>%
+      pivot_longer(cols = starts_with("total_"),
+                   names_to = "who",
+                   values_to = "count") %>%
+      mutate(who = str_replace(who, "total_", "")) %>%
+      mutate(year = as.numeric(str_extract(date,"[0-9]{4}"))) %>%
+      mutate(series_year = paste(year, "-", series_name)) %>%
+      mutate(im_path = glue("images/{tolower(who)}.png")) %>%
+      select(!date)
 
-data <- data.frame(
-  name=c("A","B","C","D","E") ,  
-  value=c(3,12,5,18,45)
-)
+scooby_colours <- unlist(list(
+  Scooby = "#a78036",
+  Daphnie = "#ff77f9",
+  Velma = "#ff9a00",
+  Shaggy = "#00e76d",
+  Fred = "#009ce7"
+))
 
-ggplot(data, aes(x=name, y=value)) + 
-  geom_bar(stat = "identity")
-
-caught_df <- subset(caught_df, select = grep("total_*", names(caught_df)))
-
-vec <- as.data.frame(t(caught_df[2,]))
-names(vec) <- "count" 
-catch_single <- tibble::rownames_to_column(vec, "who")
-catch_single <- catch_single %>%
-  mutate(who = str_replace(who, "total_", "")) %>%
-  mutate(im_path = glue("images/{who}.png"))
-
-
-ggplot(catch_single, aes(x=who, y=count, fill=who)) + 
+# first version
+p <- ggplot(caught_longer, aes(x=who, y=count, fill = who)) +
   geom_bar(stat = "identity") +
   geom_image(aes(image = im_path), size = 0.1) +
+  scale_fill_manual(values = scooby_colours) +
+  theme(legend.position = 'none') +
+  theme(text=element_text(size=15,  family="Comic Sans MS")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 15, colour = "blue"),
+        axis.title = element_text(size=18)) +
   coord_flip() +
-  theme(legend.position="none")
+  labs(title = '{closest_state}', x = '', y = 'How many monsters caught?') +
+  transition_states(series_year) +
+  ease_aes('linear')
+
+# B&W version
+p <- ggplot(caught_longer, aes(x=who, y=count, fill = who)) +
+  geom_bar(stat = "identity") +
+  geom_image(aes(image = im_path), size = 0.1) +
+  scale_fill_manual(values = scooby_colours) +
+  theme_dark() +
+  theme(legend.position = 'none') +
+  theme(text=element_text(size=15,  family="Comic Sans MS")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 15, colour = "white"),
+        axis.title = element_text(size=18, colour = "white"),
+        axis.text = element_text(colour = "white"),
+        plot.background = element_rect(fill = "#2b272e")) +
+  coord_flip() +
+  labs(title = '{closest_state}', x = '', y = 'How many monsters caught?') +
+  transition_states(series_year) +
+  ease_aes('linear')
+
+animate(p, 260, 20)
+anim_save("scooby_gif.gif")
+
