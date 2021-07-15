@@ -54,23 +54,25 @@ p <- ggplot(caught_longer, aes(x=who, y=count, fill = who)) +
   geom_image(aes(image = im_path), size = 0.1) +
   scale_fill_manual(values = scooby_colours) +
   theme(legend.position = 'none') +
-  theme(text=element_text(size=15,  family="Comic Sans MS")) +
-  theme(plot.title = element_text(hjust = 0.5, size = 15, colour = "blue"),
+  theme(text=element_text(size=16,  family="Comic Sans MS")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 13,
+                                  colour = "red", family = "Chalkduster"),
         axis.title = element_text(size=18)) +
   coord_flip() +
   labs(title = '{closest_state}', x = '', y = 'How many monsters caught?') +
   transition_states(series_year) +
   ease_aes('linear')
 
-# B&W version
+# Dark version
 p <- ggplot(caught_longer, aes(x=who, y=count, fill = who)) +
   geom_bar(stat = "identity") +
   geom_image(aes(image = im_path), size = 0.1) +
   scale_fill_manual(values = scooby_colours) +
   theme_dark() +
   theme(legend.position = 'none') +
-  theme(text=element_text(size=15,  family="Comic Sans MS")) +
-  theme(plot.title = element_text(hjust = 0.5, size = 15, colour = "white"),
+  theme(text=element_text(size=16,  family="Comic Sans MS")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 14,
+                                  colour = "red", family = "Chalkduster"),
         axis.title = element_text(size=18, colour = "white"),
         axis.text = element_text(colour = "white"),
         plot.background = element_rect(fill = "#2b272e")) +
@@ -79,6 +81,5 @@ p <- ggplot(caught_longer, aes(x=who, y=count, fill = who)) +
   transition_states(series_year) +
   ease_aes('linear')
 
-animate(p, 260, 20)
-anim_save("scooby_gif.gif")
-
+animate(p, fps = 20, duration = 20)
+anim_save("scooby_gif_dark.gif")
