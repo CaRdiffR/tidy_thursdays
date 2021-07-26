@@ -63,6 +63,9 @@ p <- ggplot(caught_longer, aes(x=who, y=count, fill = who)) +
   transition_states(series_year) +
   ease_aes('linear')
 
+animate(p, fps = 20, duration = 20)
+anim_save("scooby_gif.gif")
+
 # Dark version
 p <- ggplot(caught_longer, aes(x=who, y=count, fill = who)) +
   geom_bar(stat = "identity") +
