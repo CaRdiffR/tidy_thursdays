@@ -22,7 +22,7 @@ system.time(
 
 all(x1==x2, na.rm=T)
 
-bsongperf <- bsongperf[bsongperf$song_id %in% intersect(bsongperf$song_id, audio_features$song_id),]
+bsongperf <- x2
 
 system.time(
   audio_features <-
