@@ -127,7 +127,8 @@ ggplot(wks_song_info, aes(weeks_on_chart,
     geom_point(alpha = 0.05) +geom_smooth() +
     geom_point(data = best_songs, aes(weeks_on_chart, 
             spotify_track_popularity,
-            label = paste0(song.x, " by ", performer.x))) +
+            label = paste0(song.x, " by ", performer.x)),
+            colour = "red") +
     geom_text_repel(data = best_songs, aes(weeks_on_chart, 
                         spotify_track_popularity,
                         label = paste0(song.x, " by ", performer.x)))
@@ -137,14 +138,16 @@ ggplot(wks_song_info, aes(weeks_on_chart,
 
 # try adding geom_density
 colfunc <- colorRampPalette(c("white", "lightblue", "green", "yellow", "red"))
-ggplot(wks_song_info, aes(weeks_on_chart, 
+den_plot <- ggplot(wks_song_info, aes(weeks_on_chart, 
                           spotify_track_popularity)) +
     stat_density2d(geom="tile", aes(fill = ..density..), contour = FALSE) +
     scale_fill_gradientn(colours=colfunc(400)) + # gives the colour plot
     geom_density2d(colour="black", bins=5) # draws the lines inside
 
+den_plot
 # this is pretty with three groups seem obvious. 
 
-
+# change the x-axis to make groups easier to see
+den_plot + xlim(0,40)
 
 
