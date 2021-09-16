@@ -90,7 +90,7 @@ p1 + geom_smooth()
 # change with ylim()
 p1 + geom_smooth() + ylim(0,1000000)
 # still looks pretty flat. 
-# no stats here but song lenth doesn't seem toaffect 
+# no stats here but song lenth doesn't seem to affect 
 # weeks on chart... 
 
 
@@ -113,6 +113,16 @@ ggplot(wks_song_info, aes(weeks_on_chart,
 # suggests groups of songs that do well on 
 # spotify but don't make the charts 
 # and some that do well on both... 
+
+# try adding geom_density
+colfunc <- colorRampPalette(c("white", "lightblue", "green", "yellow", "red"))
+ggplot(wks_song_info, aes(weeks_on_chart, 
+                          spotify_track_popularity)) +
+    stat_density2d(geom="tile", aes(fill = ..density..), contour = FALSE) +
+    scale_fill_gradientn(colours=colfunc(400)) + # gives the colour plot
+    geom_density2d(colour="black", bins=5) # draws the lines inside
+
+# this is pretty with three groups seem obvious. 
 
 # 'best' songs probably in top right hand corner. 
 # with weeks > 25 or 35 
