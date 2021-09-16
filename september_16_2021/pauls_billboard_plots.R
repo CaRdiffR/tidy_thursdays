@@ -1,6 +1,6 @@
 # playing with data... 
 library(tidyverse)
-
+library(ggrepel)
 # pull down central billboard data... 
 billboard <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-09-14/billboard.csv')
 
@@ -114,6 +114,27 @@ ggplot(wks_song_info, aes(weeks_on_chart,
 # spotify but don't make the charts 
 # and some that do well on both... 
 
+# which song to label?
+# certainly weeks on chart > 75
+# maybe weeks on charts > 65
+
+best_songs <- wks_song_info %>%
+    filter(weeks_on_chart > 65)
+
+
+ggplot(wks_song_info, aes(weeks_on_chart, 
+                          spotify_track_popularity)) +
+    geom_point(alpha = 0.05) +geom_smooth() +
+    geom_point(data = best_songs, aes(weeks_on_chart, 
+            spotify_track_popularity,
+            label = paste0(song.x, " by ", performer.x))) +
+    geom_text_repel(data = best_songs, aes(weeks_on_chart, 
+                        spotify_track_popularity,
+                        label = paste0(song.x, " by ", performer.x)))
+
+# bit slow rendering... 
+
+
 # try adding geom_density
 colfunc <- colorRampPalette(c("white", "lightblue", "green", "yellow", "red"))
 ggplot(wks_song_info, aes(weeks_on_chart, 
@@ -124,8 +145,6 @@ ggplot(wks_song_info, aes(weeks_on_chart,
 
 # this is pretty with three groups seem obvious. 
 
-# 'best' songs probably in top right hand corner. 
-# with weeks > 25 or 35 
-# and spotify > 60... 
 
-# more analysis possible
+
+
