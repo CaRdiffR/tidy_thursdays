@@ -10,7 +10,7 @@ billboard <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/
 
 songs <- billboard %>%
   mutate(week_id = as.Date(week_id, format="%m/%d/%Y")) %>%
-  group_by(decade = floor_date(week_id, years(x = 10))) %>% 
+  group_by(decade = floor_date(week_id, years(x = 10))) %>%
   summarise(all_titles = paste(song, collapse = " "))
 
 songs$decade <- year(songs$decade)
