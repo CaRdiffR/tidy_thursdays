@@ -25,7 +25,9 @@ lyrics$sentiment <- get_sentiment(lyrics$line, method = "syuzhet")
 
 songs_sentiment <- lyrics %>%
   group_by(song_id) %>%
-  summarise(avg_sentiment = mean(sentiment)) %>%
+  summarise(avg_sentiment = mean(sentiment),
+            album_name = first(album_name),
+            track_number = first(track_number)) %>%
   arrange(avg_sentiment)
 
 albums_sentiment <- lyrics %>%
@@ -33,12 +35,22 @@ albums_sentiment <- lyrics %>%
   summarise(avg_sentiment = mean(sentiment)) %>%
   arrange(avg_sentiment)
 
+
+## plot song sentiment by track number for each album
+ggplot(songs_sentiment, aes(x = track_number, y = avg_sentiment)) +
+  geom_line() + 
+  facet_wrap(~forcats::fct_relevel(album_name, "Spice", "Spiceworld",
+                                   "Forever"))
+
+
+# plot smoothed sentiment values for "Wannabe"
+
 senti_vec <- (lyrics %>% filter(song_name == "Wannabe"))$sentiment
 lyrics_vec <- (lyrics %>% filter(song_name == "Wannabe"))$line
 
 dct_values <- get_dct_transform(
   senti_vec,
-  low_pass_size = 7,
+  low_pass_size = 12,
   x_reverse_len = length(lyrics_vec),
   scale_vals = F,
   scale_range = T
@@ -53,10 +65,29 @@ plot(
   col = "red"
 )
 
+# plot_ly equivalent
+
 fig <- plot_ly(x = 1:length(dct_values), y = dct_values,
                text = lyrics_vec, color = I("blue"),
                type = 'scatter', mode = 'lines+markers')
 fig
+
+# plot sentiment by track number for each album
+
+ggplot(lyrics, aes(x = line_number, y = sentiment, 
+                   group = song_name, 
+                   color = song_name)) + 
+  geom_smooth(method = "loess", se = FALSE)
+
+# plot_ly version
+
+fig2 <- lyrics %>%
+  group_by(song_name) %>%
+  mutate(fit = fitted(loess(sentiment ~ line_number))) %>%
+  plot_ly(x = ~line_number) %>%
+  add_lines(y = ~fit, color = ~song_name,
+            showlegend = FALSE)
+fig2
 
 ###### Interactive plot
 
