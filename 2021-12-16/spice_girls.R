@@ -86,7 +86,10 @@ fig2 <- lyrics %>%
   mutate(fit = fitted(loess(sentiment ~ line_number))) %>%
   plot_ly(x = ~line_number) %>%
   add_lines(y = ~fit, color = ~song_name,
-            showlegend = FALSE)
+            showlegend = FALSE) %>%
+  layout(title = "Sentiment of Spice Girls' Songs",
+         xaxis = list(title = "Line number"),
+         yaxis = list(title = "Sentiment"))
 fig2
 
 ###### Interactive plot
