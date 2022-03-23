@@ -1,10 +1,11 @@
 library(readr)
-# install.packages("syuzhet")
-library(syuzhet)
 library(stringi)
 library(dplyr)
 library(ggplot2)
 library(plotly)
+
+# install.packages("syuzhet")
+library(syuzhet)
 
 # Useful tutorial
 # https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html?
@@ -65,9 +66,7 @@ plot(
   col = "red"
 )
 
-# plot_ly equivalent
-
-fig <- plot_ly(x = 1:length(dct_values), y = dct_values,
+fig <- plot_ly(x = 1:length(dct_values), y = senti_vec,
                text = lyrics_vec, color = I("blue"),
                type = 'scatter', mode = 'lines+markers')
 fig
@@ -118,7 +117,7 @@ server <- function(input, output, session) {
 
     dct_values <- get_dct_transform(
       senti_vec,
-      low_pass_size = 7,
+      low_pass_size = 12,
       x_reverse_len = length(lyrics_vec),
       scale_vals = F,
       scale_range = T
@@ -145,12 +144,12 @@ shinyApp(ui, server)
 
 # Emotions
 
-nrc_data <- get_nrc_sentiment(lyrics$line[1:500])
+nrc_data <- get_nrc_sentiment(lyrics$line[1:1000])
 angry_items <- which(nrc_data$anger > 0)
-lyrics$line[1:500][angry_items]
+lyrics$line[1:1000][angry_items]
 
 joy_items <- which(nrc_data$joy > 0)
-lyrics$line[1:500][joy_items]
+lyrics$line[1:1000][joy_items]
 
 barplot(
   sort(colSums(prop.table(nrc_data[, 1:8]))),
