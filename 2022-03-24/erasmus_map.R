@@ -11,7 +11,7 @@ library(geosphere)
 
 palette(rainbow(20))
 
-register_google(key = google_maps_key)
+register_google(key = Sys.getenv("GOOGLE_MAP_KEY")) # you need to get it from GCP
 
 erasmus <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-03-08/erasmus.csv')
 
@@ -86,7 +86,10 @@ for(i in 1:nrow(summary_trips)){
   paths <- rbind(paths, inter)
 }
 
+
 paths$popularity <- round(log2(paths$popularity))
+
+p <- plot_europe()
 
 p + geom_path(data = paths, aes(lon,lat, col=popularity)) +
   scale_color_continuous(type="viridis")
